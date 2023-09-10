@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>l</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link href="css/style.css" rel="stylesheet" />
+    </head>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans',
+                'Helvetica Neue', sans-serif;
+        }
+        input,
+        div {
+            font-size: 30px;
+        }
+
+        #show {
+            width: 300px;
+            height: 200px;
+            border: 2px solid #e4e7ea;
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        input {
+            background: #e4e7ea;
+            border: none;
+
+            width: 300px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        input:focus {
+            border: none;
+            outline: none;
+        }
+
+        #status {
+            width: 300px;
+            height: 40px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: gray;
+        }
+
+        button {
+            background-color: #ccc;
+            color: white;
+            margin: 2px;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            flex: 1;
+        }
+        #streak {
+            font-size: 12px;
+            margin-bottom: 10px;
+            color: #888;
+            width: 300px;
+        }
+
+        #timeleft {
+            font-size: 12px;
+            margin-bottom: 10px;
+            color: #888;
+            width: 300px;
+        }
+
+        #title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #888;
+            width: 300px;
+        }
+    </style>
+    <body>
+        <div id="title">Ferris Sweep Training</div>
+        <div id="streak">Points:</div>
+        <div id="timeleft">Time:</div>
+        <div id="status"></div>
+        <div id="show"></div>
+        <input type="" id="input" name="" value="" autofocus />
+
+        <div style="display: flex; width: 300px">
+            <button id="btn-char">Char</button>
+            <button id="btn-charshift">Char+Shift</button>
+            <button id="btn-symbols">Symbols</button>
+            <button id="btn-numbers">Numbers</button>
+        </div>
+        <div style="display: flex; margin-top: 6px; width: 300px">
+            <button id="btn-start">Start</button>
+        </div>
+    </body>
+    <script>
+        function shuffle(array) {
+            let currentIndex = array.length,
+                randomIndex
+
+            // While there remain elements to shuffle.
+            while (currentIndex > 0) {
+                // Pick a remaining element.
+                randomIndex = Math.floor(Math.random() * currentIndex)
+                currentIndex--
+
+                // And swap it with the current element.
+                ;[array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex],
+                    array[currentIndex]
+                ]
+            }
+
+            return array
+        }
+        const random = (number) => Math.floor(Math.random() * number)
+        let streak = 0
+
+        let isSymbols = false
+        const symbolOptions = "~&*|+`$%^-\!@#_'" + '"'
+
+        let isNumbers = false
+        let numberOptions = '1234567890'
+
+        let isLetters = false
+        let letterOptions = 'zaqxswcdevfrbgtnhymjukilop'
+
+        let isShiftLetters = false
+        let shiftLetterOptions = 'ZAQXSWCDEVFRBGTNHYMJUKILOP'
+
+        let flags = {
+            isSymbols: false,
+            isNumbers: false,
+            isLetters: false,
+            isShiftLetters: false
+        }
+
+        const assessState = {
+            active: false,
+            started: 0,
+            points: 0,
+            timeout: undefined,
+            timeleft: undefined,
+            removeAssesser: () => {}
+        }
+
+        const timeleft = document.getElementById('timeleft')
+        function setTimeLeft() {
+            if (assessState.active) {
+                const time = Math.ceil(Date.now() - assessState.started) / 1000
+                timeleft.textContent = 'Time: ' + Math.ceil(30 - time)
+            }
+        }
+
+        function initAssessState() {
+            clearTimeout(assessState.timeout)
+            clearInterval(assessState.timeleft)
+            assessState.active = false
+            assessState.started = 0
+            points = 0
+            streak = 0
+            timeleft.textContent = 'Time: 0'
+
+            assessState.removeAssesser()
+            assessState.removeAssesser = () => {}
+        }
+
+        let int = undefined
+        function start() {
+            const streakEl = document.getElementById('streak')
+            streakEl.innerHTML = 'Points: 0'
+
+            assessState.started = Date.now()
+            assessState.active = true
+            let options = []
+
+            if (flags.isNumbers) {
+                options = [...options, ...numberOptions]
+            }
+
+            if (flags.isSymbols) {
+                options = [...options, ...symbolOptions]
+            }
+
+            if (flags.isLetters) {
+                options = [...options, ...letterOptions]
+            }
+
+            if (flags.isShiftLetters) {
+                options = [...options, ...shiftLetterOptions]
+            }
+
+            let firstAttemptCount = 0
+            let firstAttempts = shuffle(options)
+            //int = setInterval(() =>
+            function assess(first) {
+                if (!assessState.active) return
+                const show = document.getElementById('show')
+                const input = document.getElementById('input')
+                const status = document.getElementById('status')
+                const streakEl = document.getElementById('streak')
+
+                let choice = options[random(options.length)]
+                if (first !== true) {
+                    firstAttemptCount++
+                    if (firstAttemptCount < firstAttempts.length) {
+                        choice = firstAttempts[firstAttemptCount]
+                    }
+                }
+                if (show.innerHTML === input.value) {
+                    if (first !== true) {
+                        streak++
+                        assessState.points++
+                        status.style = 'background-color: green'
+                    }
+                } else {
+                    status.style = 'background-color: red'
+                    // streak = 0
+                }
+                streakEl.innerHTML = 'Points: ' + streak
+                show.innerHTML = choice
+                input.value = ''
+            }
+
+            const input = document
+                .getElementById('input')
+                .addEventListener('keyup', assess)
+
+            assessState.removeAssesser = () => {
+                document
+                    .getElementById('input')
+                    .removeEventListener('keyup', assess)
+            }
+
+            assess(true)
+            //  }, 3000)
+
+            assessState.timeout = setTimeout(() => {
+                initAssessState()
+                document.getElementById('btn-start').style.backgroundColor =
+                    '#ccc'
+            }, 30000)
+
+            setTimeLeft()
+            assessState.timeleft = setInterval(setTimeLeft, 1000)
+        }
+
+        function stop() {
+            initAssessState()
+            document.getElementById('btn-start').style.backgroundColor = '#ccc'
+            //clearInterval(int)
+        }
+
+        function toggleButton(id, flag) {
+            document.getElementById(id).addEventListener('click', () => {
+                if (flags[flag]) {
+                    flags[flag] = false
+                    document.getElementById(id).style.backgroundColor = '#ccc'
+                } else {
+                    flags[flag] = true
+                    document.getElementById(id).style.backgroundColor = '#888'
+                }
+            })
+        }
+
+        toggleButton('btn-char', 'isLetters')
+        toggleButton('btn-charshift', 'isShiftLetters')
+        toggleButton('btn-symbols', 'isSymbols')
+        toggleButton('btn-numbers', 'isNumbers')
+
+        document.getElementById('btn-start').addEventListener('click', () => {
+            if (int) {
+                stop()
+                document.getElementById('btn-start').style.backgroundColor =
+                    '#ccc'
+            } else {
+                start()
+                document.getElementById('btn-start').style.backgroundColor =
+                    '#888'
+            }
+        })
+
+        /**
+         * Go
+         */
+        flags.isLetters = true
+        document.getElementById('btn-char').style.backgroundColor = '#888'
+        document.getElementById('btn-start').click()
+        document.getElementById('input').focus()
+    </script>
+</html>
